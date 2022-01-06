@@ -1,0 +1,174 @@
+{
+  "connect.name": "msk.datalake.cdc_events.Value",
+  "fields": [
+    {
+      "name": "order_id",
+      "type": {
+        "connect.type": "int16",
+        "type": "int"
+      }
+    },
+    {
+      "name": "customer_id",
+      "type": "string"
+    },
+    {
+      "default": null,
+      "name": "order_date",
+      "type": [
+        "null",
+        {
+          "connect.name": "io.debezium.time.Date",
+          "connect.version": 1,
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "default": null,
+      "name": "required_date",
+      "type": [
+        "null",
+        {
+          "connect.name": "io.debezium.time.Date",
+          "connect.version": 1,
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "default": null,
+      "name": "shipped_date",
+      "type": [
+        "null",
+        {
+          "connect.name": "io.debezium.time.Date",
+          "connect.version": 1,
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "default": null,
+      "name": "order_items",
+      "type": [
+        "null",
+        {
+          "connect.name": "io.debezium.data.Json",
+          "connect.version": 1,
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "default": null,
+      "name": "products",
+      "type": [
+        "null",
+        {
+          "connect.name": "io.debezium.data.Json",
+          "connect.version": 1,
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "default": null,
+      "name": "customer",
+      "type": [
+        "null",
+        {
+          "connect.name": "io.debezium.data.Json",
+          "connect.version": 1,
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "default": null,
+      "name": "employee",
+      "type": [
+        "null",
+        {
+          "connect.name": "io.debezium.data.Json",
+          "connect.version": 1,
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "default": null,
+      "name": "shipper",
+      "type": [
+        "null",
+        {
+          "connect.name": "io.debezium.data.Json",
+          "connect.version": 1,
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "default": null,
+      "name": "shipment",
+      "type": [
+        "null",
+        {
+          "connect.name": "io.debezium.data.Json",
+          "connect.version": 1,
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "default": null,
+      "name": "updated_at",
+      "type": [
+        "null",
+        {
+          "connect.name": "io.debezium.time.ZonedTimestamp",
+          "connect.version": 1,
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "default": null,
+      "name": "__op",
+      "type": ["null", "string"]
+    },
+    {
+      "default": null,
+      "name": "__db",
+      "type": ["null", "string"]
+    },
+    {
+      "default": null,
+      "name": "__table",
+      "type": ["null", "string"]
+    },
+    {
+      "default": null,
+      "name": "__schema",
+      "type": ["null", "string"]
+    },
+    {
+      "default": null,
+      "name": "__lsn",
+      "type": ["null", "long"]
+    },
+    {
+      "default": null,
+      "name": "__source_ts_ms",
+      "type": ["null", "long"]
+    },
+    {
+      "default": null,
+      "name": "__deleted",
+      "type": ["null", "string"]
+    }
+  ],
+  "name": "Value",
+  "namespace": "msk.datalake.cdc_events",
+  "type": "record"
+}

@@ -1,0 +1,18 @@
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: emr-eks-example
+  region: ap-southeast-2
+  tags:
+    Owner: jaehyeon
+
+managedNodeGroups:
+- name: nodegroup-spot
+  desiredCapacity: 3
+  instanceTypes:
+  - m5.xlarge
+  - m5a.xlarge
+  - m4.xlarge
+  spot: true
