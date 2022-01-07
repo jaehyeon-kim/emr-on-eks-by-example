@@ -7,3 +7,8 @@ metadata:
   region: ap-southeast-2
   tags:
     Owner: jaehyeon
+
+managedNodeGroups:
+- name: nodegroup
+  desiredCapacity: 2
+  instanceType: m5.xlarge

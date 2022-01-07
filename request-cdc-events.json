@@ -1,0 +1,46 @@
+{
+    "name": "cdc-events",
+    "virtualClusterId": "9wvd1yhms5tk1k8chrn525z34",
+    "executionRoleArn": "arn:aws:iam::590312749310:role/emr-eks-example-job-execution",
+    "releaseLabel": "emr-6.4.0-latest",
+    "jobDriver": {
+        "sparkSubmitJobDriver": {
+            "entryPoint": "s3://emr-eks-example-ap-southeast-2/config/hudi-utilities-bundle_2.12-0.10.0.jar",
+            "entryPointArguments": [
+              "--table-type", "COPY_ON_WRITE",
+              "--source-ordering-field", "__source_ts_ms",
+              "--props", "s3://emr-eks-example-ap-southeast-2/config/cdc_events_s3.properties",
+              "--source-class", "org.apache.hudi.utilities.sources.JsonDFSSource",
+              "--target-base-path", "s3://emr-eks-example-ap-southeast-2/hudi/cdc-events/",
+              "--target-table", "datalake.cdc_events",
+              "--schemaprovider-class", "org.apache.hudi.utilities.schema.FilebasedSchemaProvider",
+              "--enable-hive-sync",
+              "--min-sync-interval-seconds", "60",
+              "--continuous",
+              "--op", "UPSERT"
+            ],
+            "sparkSubmitParameters": "--class org.apache.hudi.utilities.deltastreamer.HoodieDeltaStreamer             --jars local:///usr/lib/spark/external/lib/spark-avro_2.12-3.1.2-amzn-0.jar,s3://emr-eks-example-ap-southeast-2/config/hudi-utilities-bundle_2.12-0.10.0.jar             --conf spark.driver.cores=1             --conf spark.driver.memory=2G             --conf spark.executor.instances=2             --conf spark.executor.memory=2G             --conf spark.executor.cores=1             --conf spark.sql.catalogImplementation=hive             --conf spark.serializer=org.apache.spark.serializer.KryoSerializer"
+        }
+    },
+    "configurationOverrides": {
+        "applicationConfiguration": [
+            {
+                "classification": "spark-defaults",
+                "properties": {
+                  "spark.hadoop.hive.metastore.client.factory.class":"com.amazonaws.glue.catalog.metastore.AWSGlueDataCatalogHiveClientFactory",
+                  "spark.kubernetes.driver.podTemplateFile":"s3://emr-eks-example-ap-southeast-2/config/driver_pod_template.yml",
+                  "spark.kubernetes.executor.podTemplateFile":"s3://emr-eks-example-ap-southeast-2/config/executor_pod_template.yml"
+                }
+            }
+        ],
+        "monitoringConfiguration": {
+            "cloudWatchMonitoringConfiguration": {
+                "logGroupName": "/emr-eks-example",
+                "logStreamNamePrefix": "cdc"
+            },
+            "s3MonitoringConfiguration": {
+                "logUri": "s3://emr-eks-example-ap-southeast-2/logs/"
+            }
+        }
+    }
+}

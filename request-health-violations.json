@@ -1,0 +1,27 @@
+{
+    "name": "health-violations",
+    "virtualClusterId": "9wvd1yhms5tk1k8chrn525z34",
+    "executionRoleArn": "arn:aws:iam::590312749310:role/emr-eks-example-job-execution",
+    "releaseLabel": "emr-6.2.0-latest",
+    "jobDriver": {
+        "sparkSubmitJobDriver": {
+            "entryPoint": "s3://emr-eks-example-ap-southeast-2/config/health_violations.py",
+            "entryPointArguments": [
+                "--data_source", "s3://emr-eks-example-ap-southeast-2/config/food_establishment_data.csv",
+                "--output_uri", "s3://emr-eks-example-ap-southeast-2/output"
+            ],
+            "sparkSubmitParameters": "--conf spark.executor.instances=2                 --conf spark.executor.memory=2G                 --conf spark.executor.cores=1                 --conf spark.driver.cores=1                 --conf spark.driver.memory=2G"
+        }
+    },
+    "configurationOverrides": {
+        "monitoringConfiguration": {
+            "cloudWatchMonitoringConfiguration": {
+                "logGroupName": "/emr-eks-example",
+                "logStreamNamePrefix": "health"
+            },
+            "s3MonitoringConfiguration": {
+                "logUri": "s3://emr-eks-example-ap-southeast-2/logs/"
+            }
+        }
+    }
+}

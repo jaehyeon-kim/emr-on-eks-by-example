@@ -18,11 +18,23 @@ metadata:
   region: ${AWS_REGION}
   tags:
     Owner: ${OWNER}
+EOF
+
+cat << EOF > ./manifests/nodegroup.yaml
+---
+apiVersion: eksctl.io/v1alpha5
+kind: ClusterConfig
+
+metadata:
+  name: ${CLUSTER_NAME}
+  region: ${AWS_REGION}
+  tags:
+    Owner: ${OWNER}
 
 managedNodeGroups:
 - name: nodegroup
   desiredCapacity: 2
-  instanceType: m5.large
+  instanceType: m5.xlarge
 EOF
 
 cat << EOF > ./manifests/nodegroup-spot.yaml
