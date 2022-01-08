@@ -5,9 +5,23 @@ export EMR_ROLE_NAME=${CLUSTER_NAME}-job-execution
 export S3_BUCKET_NAME=${CLUSTER_NAME}-${AWS_REGION}
 export LOG_GROUP_NAME=/${CLUSTER_NAME}
 
-#### run set up script
-## - create config files, sample scripts and donwload necessary files
+#### run setup script
+## - create config files, sample scripts and download necessary files
 ./setup.sh
+
+tree -p config -p manifests
+# config
+# ├── [-rw-r--r--]  cdc_events.avsc
+# ├── [-rw-r--r--]  cdc_events_s3.properties
+# ├── [-rw-r--r--]  driver_pod_template.yml
+# ├── [-rw-r--r--]  executor_pod_template.yml
+# ├── [-rw-r--r--]  food_establishment_data.csv
+# ├── [-rw-r--r--]  health_violations.py
+# └── [-rw-r--r--]  hudi-utilities-bundle_2.12-0.10.0.jar
+# manifests
+# ├── [-rw-r--r--]  cluster.yaml
+# ├── [-rw-r--r--]  nodegroup-spot.yaml
+# └── [-rw-r--r--]  nodegroup.yaml
 
 #### create S3 bucket/log group/glue database and upload files to S3
 aws s3 mb s3://${S3_BUCKET_NAME}
@@ -19,6 +33,13 @@ for f in $(ls ./config/)
   do
     aws s3 cp ./config/${f} s3://${S3_BUCKET_NAME}/config/
   done
+# upload: config/cdc_events.avsc to s3://emr-eks-example-ap-southeast-2/config/cdc_events.avsc
+# upload: config/cdc_events_s3.properties to s3://emr-eks-example-ap-southeast-2/config/cdc_events_s3.properties
+# upload: config/driver_pod_template.yml to s3://emr-eks-example-ap-southeast-2/config/driver_pod_template.yml
+# upload: config/executor_pod_template.yml to s3://emr-eks-example-ap-southeast-2/config/executor_pod_template.yml
+# upload: config/food_establishment_data.csv to s3://emr-eks-example-ap-southeast-2/config/food_establishment_data.csv
+# upload: config/health_violations.py to s3://emr-eks-example-ap-southeast-2/config/health_violations.py
+# upload: config/hudi-utilities-bundle_2.12-0.10.0.jar to s3://emr-eks-example-ap-southeast-2/config/hudi-utilities-bundle_2.12-0.10.0.jar
 
 #### create cluster, node group and configure
 eksctl create cluster -f ./manifests/cluster.yaml
@@ -344,18 +365,12 @@ aws emr-containers list-job-runs --virtual-cluster-id ${VIRTUAL_CLUSTER_ID} --qu
 #     }
 # ]
 
-kubectl get all -n spark
+kubectl get pod -n spark
 # NAME                                                            READY   STATUS    RESTARTS   AGE
 # pod/00000002vhi9hivmjk5-wf8vp                                   3/3     Running   0          14m
 # pod/delta-streamer-datalake-cdcevents-5397917e324dea27-exec-1   2/2     Running   0          12m
 # pod/delta-streamer-datalake-cdcevents-5397917e324dea27-exec-2   2/2     Running   0          12m
 # pod/spark-00000002vhi9hivmjk5-driver                            2/2     Running   0          13m
-
-# NAME                                                            TYPE        CLUSTER-IP   EXTERNAL-IP   PORT(S)                      AGE
-# service/spark-00000002vhi9hivmjk5-1bc0167e324d3a09-driver-svc   ClusterIP   None         <none>        7078/TCP,7079/TCP,4040/TCP   13m
-
-# NAME                            COMPLETIONS   DURATION   AGE
-# job.batch/00000002vhi9hivmjk5   0/1           14m        14m
 
 for n in $(kubectl get nodes -l eks.amazonaws.com/capacityType=ON_DEMAND --no-headers | cut -d " " -f1)
   do echo "Pods on instance ${n}:";kubectl get pods -n spark  --no-headers --field-selector spec.nodeName=${n}
@@ -381,24 +396,31 @@ for n in $(kubectl get nodes -l eks.amazonaws.com/capacityType=SPOT --no-headers
 # delta-streamer-datalake-cdcevents-5397917e324dea27-exec-1   2/2   Running   0     16m
 
 aws glue get-table --database-name datalake --name cdc_events \
-    --query "Table.[DatabaseName, Name, StorageDescriptor.Location, CreatedBy]"
+    --query "Table.[DatabaseName, Name, StorageDescriptor.Location, CreateTime, CreatedBy]"
 # [
 #     "datalake",
 #     "cdc_events",
 #     "s3://emr-eks-example-ap-southeast-2/hudi/cdc-events",
-#     "arn:aws:sts::<AWS-ACCOUNT-ID>:assumed-role/emr-eks-example-job-execution/aws-sdk-java-1641521928075"
+#     "2022-01-07T13:18:49+11:00",
+#     "arn:aws:sts::590312749310:assumed-role/emr-eks-example-job-execution/aws-sdk-java-1641521928075"
 # ]
 
 #### clean up
+# delete virtual cluster
+export JOB_RUN_ID=$(aws emr-containers list-job-runs --virtual-cluster-id ${VIRTUAL_CLUSTER_ID} --query "jobRuns[?name=='cdc-events'].id" --output text)
+aws emr-containers cancel-job-run --id ${JOB_RUN_ID} \
+  --virtual-cluster-id ${VIRTUAL_CLUSTER_ID}
+aws emr-containers delete-virtual-cluster --id ${VIRTUAL_CLUSTER_ID}
+# delete s3
 aws s3 rm s3://${S3_BUCKET_NAME} --recursive
 aws s3 rb s3://${S3_BUCKET_NAME} --force
+# delete log group
 aws logs delete-log-group --log-group-name ${LOG_GROUP_NAME}
+# delete glue table/database
 aws glue delete-table --database-name datalake --name cdc_events
 aws glue delete-database --name datalake
-
+# delete iam role/policy
 aws iam delete-role-policy --role-name ${EMR_ROLE_NAME} --policy-name ${EMR_ROLE_NAME}-policy
 aws iam delete-role --role-name ${EMR_ROLE_NAME}
-
-aws emr-containers delete-virtual-cluster --id ${VIRTUAL_CLUSTER_ID}
-
+# delete eks cluster
 eksctl delete cluster --name ${CLUSTER_NAME}
