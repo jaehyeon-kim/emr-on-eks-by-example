@@ -1,6 +1,3 @@
-# emr-on-eks-by-example
+# EMR on EKS by Example
 
-```bash
-## initial setup, creates eks/hudi config files and downloads hudi library
-./setup.sh
-```
+Source for [EMR on EKS by Example](https://cevo.com.au/post/emr-on-eks-by-example/).
